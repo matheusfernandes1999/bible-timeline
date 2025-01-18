@@ -1,5 +1,8 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from "react";
+import { collection, onSnapshot } from "firebase/firestore";
+import { db } from "../../firebase";
+
 import { Event } from './types/events';
 import EventForm from './Components/EventForm';
 import TimelineComponent from './Components/TimelineComponent';
@@ -8,34 +11,34 @@ import SafeMap from './Components/SafeMap';
 
 export default function Timeline() {
   const [events, setEvents] = useState<Event[]>([]);
-  const addEvent = (newEvent: Event) => {
-    setEvents([...events, newEvent].sort((a, b) => a.start - b.start));
-  };
 
-  const [tooltip, setTooltip] = useState<{ visible: boolean; x: number; y: number; text: string } | null>(null);
+  useEffect(() => {
+    // Subscribe to the real-time updates from Firestore
+    const unsubscribe = onSnapshot(collection(db, "events"), (querySnapshot) => {
+      const fetchedEvents = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as unknown as Event[];
+
+      // Sort the events based on the start date
+      setEvents(fetchedEvents.sort((a, b) => a.start - b.start));
+    }, (error) => {
+      console.error("Error fetching events from Firestore: ", error);
+    });
+
+    // Cleanup the listener when the component unmounts
+    return () => unsubscribe();
+  }, []);
+
+  const [tooltip, setTooltip] = useState<{ visible: boolean; id: string } | null>(null);
   const timelineStart = -4026;
   const timelineEnd = 1914;
   const totalTimelineDuration = timelineEnd - timelineStart;
 
   const handleEventClick = (event: Event, e: React.MouseEvent) => {
-    if (tooltip?.visible && tooltip.text === `Start: ${event.start} | End: ${event.finish}`) {
-      setTooltip(null);
-    } else {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const x = rect.left + rect.width / 2;
-      const y = rect.top;
-
-      let tooltipText = `Start: ${event.start} | End: ${event.finish}`;
-      if (event.meaning) tooltipText += ` | Meaning: ${event.meaning}`;
-      if (event.bibleText) tooltipText += ` | Bible Text: ${event.bibleText}`;
-      if (event.place) tooltipText += ` | Place: ${event.place}`;
-      if (event.additionalInfo) tooltipText += ` | Info: ${event.additionalInfo}`;
-
       setTooltip({
         visible: true,
-        x,
-        y,
-        text: tooltipText,
+        id: event.id,
       });
 
       const updatedEvents = events.map((e) => {
@@ -54,16 +57,14 @@ export default function Timeline() {
           }
         });
       }
-
       setEvents(updatedEvents);
-    }
   };
 
   const closeTooltip = () => setTooltip(null);
 
   return (
     <div className='bg-gray-950 h-[100vh]'>
-      <EventForm onAddEvent={addEvent} />
+      <EventForm />
       <TimelineComponent
         events={events}
         onEventClick={handleEventClick}
@@ -71,7 +72,8 @@ export default function Timeline() {
         timelineEnd={timelineEnd}
         totalTimelineDuration={totalTimelineDuration}
       />
-      <TooltipComponent tooltip={tooltip} onClose={closeTooltip} />
+
+      <TooltipComponent tooltip={tooltip} onClose={closeTooltip}/>
       <SafeMap events={events} />
     </div>
   );

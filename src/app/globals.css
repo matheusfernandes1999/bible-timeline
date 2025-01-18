@@ -8,6 +8,17 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Hide the scrollbar */
 :root::-webkit-scrollbar { 
-  display: none;  /* Safari and Chrome */
+  display: none;
+}
+
+/* Firefox */
+body {
+  scrollbar-width: none;
+}
+
+/* Edge, newer Chrome */
+body {
+  -ms-overflow-style: none;
 }
