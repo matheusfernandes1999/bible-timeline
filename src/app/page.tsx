@@ -4,7 +4,7 @@ import { Event } from './types/events';
 import EventForm from './Components/EventForm';
 import TimelineComponent from './Components/TimelineComponent';
 import TooltipComponent from './Components/TooltipComponent';
-import MapComponent from './Components/MapComponent';
+import SafeMap from './Components/SafeMap';
 
 export default function Timeline() {
   const [events, setEvents] = useState<Event[]>([]);
@@ -72,7 +72,7 @@ export default function Timeline() {
         totalTimelineDuration={totalTimelineDuration}
       />
       <TooltipComponent tooltip={tooltip} onClose={closeTooltip} />
-      <MapComponent events={events} />
+      <SafeMap events={events} />
     </div>
   );
 }
