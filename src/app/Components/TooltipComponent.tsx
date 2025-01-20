@@ -226,8 +226,8 @@ const TooltipComponent: React.FC<TooltipProps> = ({ tooltip, onClose }) => {
                 </div>
                 <div className="w-full rounded-md">
                   {/* Check if latitude and longitude are filled */}
-                  {eventDetails?.latitude && eventDetails?.longitude && eventDetails?.mapLink ? (
-                    <SafeTooltipMap mapLink={eventDetails?.mapLink} latitude={eventDetails.latitude} longitude={eventDetails.longitude} />
+                  {eventDetails?.latitude && eventDetails?.longitude ? (
+                    <SafeTooltipMap mapLink={eventDetails.mapLink} latitude={eventDetails.latitude} longitude={eventDetails.longitude} />
                   ) : (
                     <p className="text-gray-400 w-full">Localização não informada.</p>
                   )}
